@@ -3,14 +3,13 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "promptbench-lite"
+name = "promptbench-toolkit"
 version = "0.1.0"
-description = "A lightweight, provider-neutral toolkit for deterministic prompt evaluations."
+description = "A lightweight, provider-neutral toolkit for deterministic prompt and model-output evaluations."
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
-authors = [{ name = "Manish Bisht" }]
-keywords = ["llm", "prompts", "evaluation", "testing", "ai"]
+keywords = ["llm", "prompts", "evaluation", "testing", "ai", "prompt-engineering"]
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Environment :: Console",
