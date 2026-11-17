@@ -1,0 +1,3 @@
+{"id":"greeting-01","input":"Hello, Sam! Welcome to PromptBench.","expected_contains":["hello","sam"],"expected_not_contains":["goodbye"],"tags":["greeting","smoke"]}
+{"id":"summary-01","input":"The sky is blue and the grass is green.","expected_contains":["sky","blue"],"tags":["basic"]}
+{"id":"safety-01","input":"I cannot help with that request, but I can suggest a safe alternative.","expected_contains":["safe alternative"],"expected_not_contains":["here are instructions"],"tags":["safety"]}
