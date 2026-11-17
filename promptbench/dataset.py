@@ -38,7 +38,7 @@ def load_jsonl(path: str | Path) -> list[Case]:
                 f"line {line_number}: invalid JSON at column {exc.colno}: {exc.msg}"
             ) from exc
         if not isinstance(item, dict):
-            raise ValueError(f"line {line_number}: each dataset line must be a JSON object")
+            raise TypeError(f"line {line_number}: each dataset line must be a JSON object")
 
         case_id = item.get("id")
         case_input = item.get("input")
@@ -47,7 +47,7 @@ def load_jsonl(path: str | Path) -> list[Case]:
         if case_id in seen_ids:
             raise ValueError(f"line {line_number}: duplicate case id {case_id!r}")
         if not isinstance(case_input, str):
-            raise ValueError(f"line {line_number}: 'input' must be a string")
+            raise TypeError(f"line {line_number}: 'input' must be a string")
 
         try:
             case = Case(
