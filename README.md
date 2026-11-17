@@ -1,43 +1,40 @@
 # PromptBench
 
-[![CI](https://github.com/manishbisht52001/Manish-Bisht/actions/workflows/ci.yml/badge.svg)](https://github.com/manishbisht52001/Manish-Bisht/actions/workflows/ci.yml)
+[![CI](https://github.com/manishbisht52001/PromptBench/actions/workflows/ci.yml/badge.svg)](https://github.com/manishbisht52001/PromptBench/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
 
-A small, provider-neutral toolkit for keeping prompt checks in version control and evaluating text outputs with repeatable assertions.
+A lightweight, provider-neutral toolkit for testing prompts and evaluating model outputs with repeatable, version-controlled checks.
 
-> **Project status:** early development (0.1.0). The current release provides a deterministic evaluation core. It does not call an LLM provider or perform semantic grading.
+> **Project status:** early development (0.1.0). PromptBench provides deterministic phrase-based evaluation. It does not make model API calls or perform semantic grading.
 
 ## Why PromptBench?
 
-Prompt changes can silently alter an AI system's output. PromptBench provides a minimal foundation for writing repeatable checks around those changes:
+Prompt changes can silently alter an AI system's output. PromptBench provides a minimal foundation for repeatable checks:
 
 - Store test cases as readable JSONL files.
-- Check required and forbidden phrases without calling an external API.
-- Produce terminal or JSON reports that can be consumed by CI.
-- Use the Python API to connect your own model or prompt runner.
-- Keep the core dependency-free and provider-neutral.
+- Evaluate saved outputs from any model or provider.
+- Check required and forbidden phrases without external API calls.
+- Produce terminal or JSON reports for local workflows and CI.
+- Connect your own model or prompt runner through the Python API.
+- Keep the runtime core dependency-free and provider-neutral.
 
-The project intentionally starts with deterministic checks. Exact phrase assertions are not a substitute for human review or semantic evaluation; they are a fast, predictable first layer.
+Exact phrase assertions are not a substitute for human review or semantic evaluation; they are a fast, predictable first layer.
 
 ## Quick start
 
 Requires Python 3.10 or newer.
 
 ```bash
-git clone https://github.com/manishbisht52001/Manish-Bisht.git
-cd Manish-Bisht
+git clone https://github.com/manishbisht52001/PromptBench.git
+cd PromptBench
 python -m pip install -e ".[dev]"
 promptbench run examples/basic.jsonl
 ```
 
-To write a JSON report:
+The sample command runs the evaluator against the dataset's input text, making the project runnable offline.
 
-```bash
-promptbench run examples/basic.jsonl --format json --output report.json
-```
-
-### Evaluate saved model outputs
+## Evaluate saved model outputs
 
 Export one output per dataset case as JSONL, matching by case ID:
 
@@ -52,7 +49,13 @@ Then run:
 promptbench run examples/basic.jsonl --outputs model-outputs.jsonl
 ```
 
-Every dataset case must have one matching output. Missing outputs, unknown case IDs, and duplicate IDs are reported as errors. Add `--format json` for machine-readable results. This evaluates outputs generated elsewhere; PromptBench does not make model API calls.
+Every dataset case must have exactly one matching output. Missing outputs, unknown case IDs, and duplicate IDs are reported as errors. Add `--format json` for machine-readable results. PromptBench evaluates outputs generated elsewhere; it does not call a model provider.
+
+To write a JSON report:
+
+```bash
+promptbench run examples/basic.jsonl --outputs model-outputs.jsonl --format json --output report.json
+```
 
 The command exits with code 0 when every case passes, 1 when one or more cases fail, and 2 when the dataset cannot be loaded or validated.
 
@@ -61,8 +64,8 @@ The command exits with code 0 when every case passes, 1 when one or more cases f
 PromptBench reads UTF-8 JSON Lines files: one JSON object per non-empty line.
 
 ```json
-{"id":"greeting-01","input":"Hello, Sam! Welcome to PromptBench.","expected_contains":["hello","sam"],"expected_not_contains":["goodbye"],"tags":["greeting","smoke"]}
-{"id":"summary-01","input":"The sky is blue and the grass is green.","expected_contains":["sky","blue"],"tags":["basic"]}
+{"id":"greeting-01","input":"Write a friendly greeting for Sam.","expected_contains":["hello","sam"],"expected_not_contains":["goodbye"],"tags":["greeting","smoke"]}
+{"id":"summary-01","input":"Summarize the main point.","expected_contains":["sky","blue"],"tags":["basic"]}
 ```
 
 | Field | Required | Description |
@@ -74,10 +77,6 @@ PromptBench reads UTF-8 JSON Lines files: one JSON object per non-empty line.
 | `tags` | No | String labels for organizing cases |
 
 Phrase checks are case-insensitive substring matches. Duplicate IDs, malformed JSON, and incorrectly typed fields produce line-numbered errors. Blank lines and lines beginning with `#` are ignored.
-
-### Important: current CLI behavior
-
-The initial CLI evaluates each case's `input` as its candidate output. This makes the sample dataset runnable offline and tests the evaluator itself. To evaluate real model outputs, call the Python API with a candidate function or integrate your own provider adapter. The CLI does not yet call a model.
 
 ## Python API
 
@@ -118,7 +117,7 @@ Every push and pull request runs the test suite and Ruff lint checks through Git
 ## Design principles
 
 1. **Reproducible:** the core evaluator does not use model calls, randomness, or network access.
-2. **Provider-neutral:** users supply candidate outputs through a small Python function.
+2. **Provider-neutral:** users supply candidate outputs through a small Python function or saved-output file.
 3. **Inspectable:** datasets and JSON reports are plain text.
 4. **Small surface area:** the runtime package has no third-party dependencies.
 5. **Honest evaluation:** deterministic phrase checks are clearly distinguished from semantic quality judgments.
@@ -130,9 +129,10 @@ Every push and pull request runs the test suite and Ruff lint checks through Git
 - [x] Python API and candidate function hook
 - [x] Terminal and JSON reports
 - [x] GitHub Actions CI
+- [x] CLI evaluation of saved model outputs
 - [ ] Prompt template variables
 - [ ] Baseline-versus-candidate comparison reports
-- [x] CLI evaluation of saved model outputs\n- [ ] Provider adapter examples
+- [ ] Provider adapter examples
 - [ ] Optional semantic graders with clearly documented limitations
 - [ ] CI thresholds and GitHub Action
 
