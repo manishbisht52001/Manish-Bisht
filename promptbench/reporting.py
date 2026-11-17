@@ -29,10 +29,11 @@ def render_json(results: Sequence[EvaluationResult]) -> str:
 def render_text(results: Sequence[EvaluationResult]) -> str:
     """Render a readable terminal report."""
     summary = summarize(results)
-    lines = [
+    heading = (
         f"PromptBench: {summary['passed']}/{summary['total']} passed "
         f"({summary['pass_rate']:.0%})"
-    ]
+    )
+    lines = [heading]
     for result in results:
         status = "PASS" if result.passed else "FAIL"
         lines.append(f"[{status}] {result.case_id}")
