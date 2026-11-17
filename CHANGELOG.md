@@ -11,4 +11,10 @@ All notable changes to PromptBench are documented in this file.
 - Python API for evaluating one case or running a dataset.
 - Terminal and JSON reports.
 - CLI entry point and GitHub Actions CI.
+- Saved model-output evaluation through the CLI.
 - Contribution, security, conduct, and MIT license documents.
+
+### Project identity
+- Standardized the project and command-line name as PromptBench.
+- Standardized the Python distribution name as promptbench-toolkit.
+- Removed personal author branding from package metadata.
