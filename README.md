@@ -115,7 +115,7 @@ Every push and pull request runs the test suite and Ruff lint checks through Git
 - [x] GitHub Actions CI
 - [ ] Prompt template variables
 - [ ] Baseline-versus-candidate comparison reports
-- [ ] Provider adapter examples
+- [x] CLI evaluation of saved model outputs\n- [ ] Provider adapter examples
 - [ ] Optional semantic graders with clearly documented limitations
 - [ ] CI thresholds and GitHub Action
 
