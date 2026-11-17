@@ -1,4 +1,4 @@
-"""Load PromptBench JSONL datasets."""
+"""Load PromptBench JSONL datasets and saved candidate outputs."""
 
 from __future__ import annotations
 
@@ -7,6 +7,27 @@ from pathlib import Path
 from typing import Any
 
 from .evaluator import Case
+
+
+def _read_jsonl(path: str | Path):
+    file_path = Path(path)
+    try:
+        content = file_path.read_text(encoding="utf-8")
+    except OSError as exc:
+        raise OSError(f"could not read file {file_path}: {exc}") from exc
+
+    for line_number, raw_line in enumerate(content.splitlines(), start=1):
+        if not raw_line.strip() or raw_line.lstrip().startswith("#"):
+            continue
+        try:
+            item = json.loads(raw_line)
+        except json.JSONDecodeError as exc:
+            raise ValueError(
+                f"line {line_number}: invalid JSON at column {exc.colno}: {exc.msg}"
+            ) from exc
+        if not isinstance(item, dict):
+            raise TypeError(f"line {line_number}: each JSONL line must be an object")
+        yield line_number, item
 
 
 def _string_tuple(value: Any, field_name: str, line_number: int) -> tuple[str, ...]:
@@ -19,27 +40,10 @@ def _string_tuple(value: Any, field_name: str, line_number: int) -> tuple[str, .
 
 def load_jsonl(path: str | Path) -> list[Case]:
     """Read cases from a UTF-8 JSON Lines file with helpful line-level errors."""
-    dataset_path = Path(path)
     cases: list[Case] = []
     seen_ids: set[str] = set()
 
-    try:
-        content = dataset_path.read_text(encoding="utf-8")
-    except OSError as exc:
-        raise OSError(f"could not read dataset {dataset_path}: {exc}") from exc
-
-    for line_number, raw_line in enumerate(content.splitlines(), start=1):
-        if not raw_line.strip() or raw_line.lstrip().startswith("#"):
-            continue
-        try:
-            item = json.loads(raw_line)
-        except json.JSONDecodeError as exc:
-            raise ValueError(
-                f"line {line_number}: invalid JSON at column {exc.colno}: {exc.msg}"
-            ) from exc
-        if not isinstance(item, dict):
-            raise TypeError(f"line {line_number}: each dataset line must be a JSON object")
-
+    for line_number, item in _read_jsonl(path):
         case_id = item.get("id")
         case_input = item.get("input")
         if not isinstance(case_id, str) or not case_id.strip():
@@ -48,7 +52,6 @@ def load_jsonl(path: str | Path) -> list[Case]:
             raise ValueError(f"line {line_number}: duplicate case id {case_id!r}")
         if not isinstance(case_input, str):
             raise TypeError(f"line {line_number}: 'input' must be a string")
-
         try:
             case = Case(
                 id=case_id,
@@ -65,5 +68,20 @@ def load_jsonl(path: str | Path) -> list[Case]:
             raise ValueError(f"line {line_number}: {exc}") from exc
         seen_ids.add(case_id)
         cases.append(case)
-
     return cases
+
+
+def load_outputs_jsonl(path: str | Path) -> dict[str, str]:
+    """Load saved model outputs keyed by case_id from a JSONL file."""
+    outputs: dict[str, str] = {}
+    for line_number, item in _read_jsonl(path):
+        case_id = item.get("case_id")
+        output = item.get("output")
+        if not isinstance(case_id, str) or not case_id.strip():
+            raise ValueError(f"line {line_number}: 'case_id' must be a non-empty string")
+        if not isinstance(output, str):
+            raise TypeError(f"line {line_number}: 'output' must be a string")
+        if case_id in outputs:
+            raise ValueError(f"line {line_number}: duplicate case_id {case_id!r}")
+        outputs[case_id] = output
+    return outputs
