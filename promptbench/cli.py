@@ -6,7 +6,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from .dataset import load_jsonl
+from .dataset import load_jsonl, load_outputs_jsonl
 from .evaluator import run_dataset
 from .reporting import render_json, render_text
 
@@ -20,6 +20,11 @@ def build_parser() -> argparse.ArgumentParser:
     run_parser = subparsers.add_parser("run", help="evaluate a JSONL dataset")
     run_parser.add_argument("dataset", type=Path, help="path to the JSONL dataset")
     run_parser.add_argument(
+        "--outputs",
+        type=Path,
+        help="JSONL file containing saved outputs with case_id and output fields",
+    )
+    run_parser.add_argument(
         "--format", choices=("text", "json"), default="text", help="report format"
     )
     run_parser.add_argument("--output", type=Path, help="write the report to a file")
@@ -31,7 +36,21 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     try:
         cases = load_jsonl(args.dataset)
-        results = run_dataset(cases)
+        if args.outputs:
+            outputs = load_outputs_jsonl(args.outputs)
+            case_ids = {case.id for case in cases}
+            missing = sorted(case_ids - outputs.keys())
+            unknown = sorted(outputs.keys() - case_ids)
+            if missing or unknown:
+                details = []
+                if missing:
+                    details.append(f"missing outputs for: {', '.join(missing)}")
+                if unknown:
+                    details.append(f"unknown case IDs: {', '.join(unknown)}")
+                raise ValueError("; ".join(details))
+            results = run_dataset(cases, candidate_fn=lambda case: outputs[case.id])
+        else:
+            results = run_dataset(cases)
         report = render_json(results) if args.format == "json" else render_text(results)
         if args.output:
             args.output.write_text(report + "\n", encoding="utf-8")
