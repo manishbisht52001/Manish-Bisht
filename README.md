@@ -37,6 +37,23 @@ To write a JSON report:
 promptbench run examples/basic.jsonl --format json --output report.json
 ```
 
+### Evaluate saved model outputs
+
+Export one output per dataset case as JSONL, matching by case ID:
+
+```json
+{"case_id":"greeting-01","output":"Hello, Sam! Welcome to PromptBench."}
+{"case_id":"summary-01","output":"The sky is blue and the grass is green."}
+```
+
+Then run:
+
+```bash
+promptbench run examples/basic.jsonl --outputs model-outputs.jsonl
+```
+
+Every dataset case must have one matching output. Missing outputs, unknown case IDs, and duplicate IDs are reported as errors. Add `--format json` for machine-readable results. This evaluates outputs generated elsewhere; PromptBench does not make model API calls.
+
 The command exits with code 0 when every case passes, 1 when one or more cases fail, and 2 when the dataset cannot be loaded or validated.
 
 ## Dataset format
